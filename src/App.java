@@ -5,7 +5,7 @@ public class App {
         boolean[] initial17 = new boolean[17];
         int N = 192; 
 
-        boolean[] z = readBooleanArray("task30.txt");
+        boolean[] z = new boolean[N];
 
         //LFSR:s
         boolean[] LFSR13 = new boolean[] {
@@ -21,9 +21,13 @@ public class App {
                     false, true,  false, true,  true,  false, false, true,  false, true,  false, false, true,  false, false, true,  true
         };
 
+        initial13 = getinit(13, LFSR13, z);
+        initial15 = getinit(15, LFSR15, z);
+        initial17 = getinit(17, LFSR17, z);
 
-
-        initial13 = getinit(13, LFSR13)
+        System.out.println("13: " + initial13);
+        System.out.println("15: " + initial15);
+        System.out.println("17 " + initial17);
 
     }
 
@@ -39,9 +43,46 @@ public class App {
                 init[j] = (i & (1 << j)) != 0;
             }
 
-            int p = getP(init, z);
+            int p = getP(L, init, LFSR, z);
+
+            if(Math.abs(0.5 - p) > Math.abs(0.5 - currentP)) {
+                currentP = p;
+                highestP = init;
+            }
         }
 
         return highestP;
+    }
+
+    private static int getP(int L, boolean[] init, boolean[] LFSR, boolean[] z){
+        boolean[] sequence = getSequence(L, init, LFSR, z.length);
+
+        int matches = 0;
+        for(int i = 0; i<z.length; i++){
+            if (sequence[i] == z[i]) matches++;
+        }
+
+        int p = 1 - matches/z.length;
+
+        return p;
+    }
+
+    private static boolean[] getSequence(int L, boolean[] init, boolean[] LFSR, int N){
+        boolean[] sequence = new boolean[N];
+        // input the initial state
+        System.arraycopy(init, 0, sequence, 0, init.length);
+
+        int pos = init.length;
+
+        while(pos<N){
+            boolean result = false;
+            for(int k = 0; k < L - 1; k++){
+                result ^= (LFSR[k] && sequence[pos - L + 1 + k]);
+            }
+            sequence[pos] = result;
+            pos++;
+        }
+
+        return sequence;
     }
 }
